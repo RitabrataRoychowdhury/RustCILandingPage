@@ -1,15 +1,6 @@
-@import "tailwindcss";
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@theme inline {
-  /* Added font family definitions for Space Grotesk and DM Sans */
-  --font-sans: var(--font-dm-sans);
-  --font-serif: var(--font-space-grotesk);
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-}
 
 @layer utilities {
   .text-balance {
@@ -52,8 +43,6 @@
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 262 83% 58%;
-    --font-dm-sans: "DM Sans", sans-serif;
-    --font-space-grotesk: "Space Grotesk", serif;
   }
   .dark {
     --background: 210 11% 15%;
@@ -88,8 +77,6 @@
     --sidebar-accent-foreground: 210 40% 96%;
     --sidebar-border: 215 25% 27%;
     --sidebar-ring: 262 83% 58%;
-    --font-dm-sans: "DM Sans", sans-serif;
-    --font-space-grotesk: "Space Grotesk", serif;
   }
 }
 
@@ -98,6 +85,6 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground;
   }
 }
