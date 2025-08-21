@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@theme inline {
+  /* Added font family definitions for Space Grotesk and DM Sans */
+  --font-sans: var(--font-dm-sans);
+  --font-serif: var(--font-space-grotesk);
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 210 11% 15%;
+    --card: 210 40% 96%;
+    --card-foreground: 215 25% 27%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 11% 15%;
+    --primary: 210 11% 15%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 262 83% 58%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 262 83% 58%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 24 100% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 13% 91%;
+    --input: 210 40% 96%;
+    --ring: 262 83% 58%;
+    --chart-1: 262 83% 58%;
+    --chart-2: 215 16% 47%;
+    --chart-3: 25 95% 53%;
+    --chart-4: 24 100% 50%;
+    --chart-5: 45 93% 47%;
+    --radius: 0.5rem;
+    --sidebar-background: 210 40% 96%;
+    --sidebar-foreground: 210 11% 15%;
+    --sidebar-primary: 262 83% 58%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 215 16% 47%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 262 83% 58%;
+    --font-dm-sans: "DM Sans", sans-serif;
+    --font-space-grotesk: "Space Grotesk", serif;
+  }
+  .dark {
+    --background: 210 11% 15%;
+    --foreground: 0 0% 98%;
+    --card: 210 11% 15%;
+    --card-foreground: 0 0% 98%;
+    --popover: 210 11% 15%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 210 11% 15%;
+    --secondary: 262 83% 58%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 215 25% 27%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 262 83% 58%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 24 100% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 215 25% 27%;
+    --input: 215 25% 27%;
+    --ring: 262 83% 58%;
+    --chart-1: 262 83% 58%;
+    --chart-2: 215 16% 47%;
+    --chart-3: 25 95% 53%;
+    --chart-4: 24 100% 50%;
+    --chart-5: 45 93% 47%;
+    --sidebar-background: 215 25% 27%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 262 83% 58%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 215 25% 27%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 215 25% 27%;
+    --sidebar-ring: 262 83% 58%;
+    --font-dm-sans: "DM Sans", sans-serif;
+    --font-space-grotesk: "Space Grotesk", serif;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+}
