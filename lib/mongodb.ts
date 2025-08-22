@@ -17,7 +17,18 @@ export async function connectToDatabase(): Promise<{ client: MongoClient; db: Db
   }
 
   try {
-    const client = new MongoClient(MONGODB_URI)
+    const client = new MongoClient(MONGODB_URI, {
+      tls: true,
+      tlsAllowInvalidCertificates: false,
+      tlsAllowInvalidHostnames: false,
+      serverSelectionTimeoutMS: 30000,
+      connectTimeoutMS: 30000,
+      socketTimeoutMS: 30000,
+      maxPoolSize: 10,
+      retryWrites: true,
+      retryReads: true,
+    })
+
     await client.connect()
 
     const db = client.db(DB_NAME)
