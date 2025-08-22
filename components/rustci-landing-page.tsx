@@ -569,15 +569,15 @@ export default function RustCILandingPage() {
               className="text-center"
             >
               <RotatingGlobe />
-              <h4 className="font-serif font-bold text-xl mb-4">Global Reach</h4>
+              <h4 className="font-serif font-bold text-xl mb-4">Market Potential</h4>
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div>
-                  <AnimatedCounter end={500} suffix="M+" />
-                  <div className="text-slate-400 text-sm">Developers Worldwide</div>
+                  <AnimatedCounter end={28} suffix="M+" />
+                  <div className="text-slate-400 text-sm">Active DevOps Teams</div>
                 </div>
                 <div>
-                  <AnimatedCounter end={85} suffix="%" />
-                  <div className="text-slate-400 text-sm">Cloud Adoption Rate</div>
+                  <AnimatedCounter end={23} suffix="%" />
+                  <div className="text-slate-400 text-sm">Annual Market Growth</div>
                 </div>
               </div>
             </motion.div>
@@ -604,12 +604,12 @@ export default function RustCILandingPage() {
 
             <div className="space-y-12">
               {[
-                { quarter: "Q1 2024", title: "Core Engine Development", status: "completed", color: "cyan" },
-                { quarter: "Q2 2024", title: "Valkyrie Protocol Alpha", status: "completed", color: "cyan" },
-                { quarter: "Q3 2024", title: "Private Beta Testing", status: "current", color: "purple" },
-                { quarter: "Q4 2024", title: "Public Beta Launch", status: "upcoming", color: "slate" },
-                { quarter: "Q1 2025", title: "Enterprise Features", status: "upcoming", color: "slate" },
-                { quarter: "Q2 2025", title: "Global Availability", status: "upcoming", color: "slate" },
+                { quarter: "Q3 2025", title: "Core Engine Development", status: "current", color: "purple" },
+                { quarter: "Q4 2025", title: "Valkyrie Protocol Alpha", status: "upcoming", color: "slate" },
+                { quarter: "Q1 2026", title: "Private Beta Testing", status: "upcoming", color: "slate" },
+                { quarter: "Q2 2026", title: "Public Beta Launch", status: "upcoming", color: "slate" },
+                { quarter: "Q3 2026", title: "Enterprise Features", status: "upcoming", color: "slate" },
+                { quarter: "Q4 2026", title: "Global Availability", status: "upcoming", color: "slate" },
               ].map((milestone, index) => (
                 <motion.div
                   key={index}
@@ -888,7 +888,7 @@ export default function RustCILandingPage() {
             </div>
           </div>
           <div className="border-t border-slate-700 mt-8 pt-8 text-center text-sm text-slate-400">
-            © 2024 RustCI & Valkyrie. All rights reserved. • Building the future of distributed computing.
+            © 2025 RustCI & Valkyrie. All rights reserved. • Building the future of distributed computing.
           </div>
         </div>
       </motion.footer>

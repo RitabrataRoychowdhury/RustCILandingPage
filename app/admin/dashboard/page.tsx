@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { LogOut, Users, Download, Trash2, Calendar, Building, Mail, MessageSquare } from "lucide-react"
+import { LogOut, Users, Download, Calendar, Building, Mail, MessageSquare, DollarSign, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRouter } from "next/navigation"
 
 interface Submission {
@@ -13,13 +14,23 @@ interface Submission {
   company: string
   role: string
   message: string
+  investmentRange?: string
   type: "investor" | "early-access"
   timestamp: string
 }
 
+interface Stats {
+  total: number
+  investors: number
+  earlyAccess: number
+}
+
 export default function AdminDashboard() {
   const [submissions, setSubmissions] = useState<Submission[]>([])
+  const [filteredSubmissions, setFilteredSubmissions] = useState<Submission[]>([])
+  const [stats, setStats] = useState<Stats>({ total: 0, investors: 0, earlyAccess: 0 })
   const [isLoading, setIsLoading] = useState(true)
+  const [filter, setFilter] = useState<"all" | "investor" | "early-access">("all")
   const router = useRouter()
 
   useEffect(() => {
@@ -30,11 +41,50 @@ export default function AdminDashboard() {
       return
     }
 
-    // Load submissions
-    const savedSubmissions = JSON.parse(localStorage.getItem("waitlist-submissions") || "[]")
-    setSubmissions(savedSubmissions)
-    setIsLoading(false)
+    loadSubmissions()
   }, [router])
+
+  const loadSubmissions = async () => {
+    try {
+      const response = await fetch("/api/admin/submissions", {
+        headers: {
+          Authorization: "Bearer admin-token-rustci",
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch submissions")
+      }
+
+      const data = await response.json()
+      setSubmissions(data.submissions)
+      setStats(data.stats)
+      setFilteredSubmissions(data.submissions)
+    } catch (error) {
+      console.error("Error loading submissions:", error)
+      // Fallback to localStorage for backward compatibility
+      const savedSubmissions = JSON.parse(localStorage.getItem("waitlist-submissions") || "[]")
+      setSubmissions(savedSubmissions)
+      const investorCount = savedSubmissions.filter((s: Submission) => s.type === "investor").length
+      const earlyAccessCount = savedSubmissions.filter((s: Submission) => s.type === "early-access").length
+      setStats({
+        total: savedSubmissions.length,
+        investors: investorCount,
+        earlyAccess: earlyAccessCount,
+      })
+      setFilteredSubmissions(savedSubmissions)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (filter === "all") {
+      setFilteredSubmissions(submissions)
+    } else {
+      setFilteredSubmissions(submissions.filter((sub) => sub.type === filter))
+    }
+  }, [filter, submissions])
 
   const handleLogout = () => {
     localStorage.removeItem("admin-logged-in")
@@ -42,36 +92,25 @@ export default function AdminDashboard() {
   }
 
   const handleDownload = () => {
-    const dataStr = JSON.stringify(submissions, null, 2)
+    const dataStr = JSON.stringify(filteredSubmissions, null, 2)
     const dataBlob = new Blob([dataStr], { type: "application/json" })
     const url = URL.createObjectURL(dataBlob)
     const link = document.createElement("a")
     link.href = url
-    link.download = `waitlist-submissions-${new Date().toISOString().split("T")[0]}.json`
+    link.download = `rustci-waitlist-${filter}-${new Date().toISOString().split("T")[0]}.json`
     link.click()
     URL.revokeObjectURL(url)
   }
 
-  const handleDelete = (id: string) => {
-    const updatedSubmissions = submissions.filter((sub) => sub.id !== id)
-    setSubmissions(updatedSubmissions)
-    localStorage.setItem("waitlist-submissions", JSON.stringify(updatedSubmissions))
+  const handleRefresh = () => {
+    setIsLoading(true)
+    loadSubmissions()
   }
-
-  const handleClearAll = () => {
-    if (confirm("Are you sure you want to delete all submissions?")) {
-      setSubmissions([])
-      localStorage.removeItem("waitlist-submissions")
-    }
-  }
-
-  const investorSubmissions = submissions.filter((sub) => sub.type === "investor")
-  const earlyAccessSubmissions = submissions.filter((sub) => sub.type === "early-access")
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+        <div className="text-white">Loading submissions from S3...</div>
       </div>
     )
   }
@@ -86,9 +125,13 @@ export default function AdminDashboard() {
           <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold">RustCI & Valkyrie Admin</h1>
-              <p className="text-gray-400">Waitlist Management Dashboard</p>
+              <p className="text-gray-400">Waitlist Management Dashboard (S3 Storage)</p>
             </div>
             <div className="flex items-center gap-4">
+              <Button onClick={handleRefresh} variant="outline" className="border-gray-700 bg-transparent">
+                <Users className="w-4 h-4 mr-2" />
+                Refresh
+              </Button>
               <Button onClick={handleDownload} variant="outline" className="border-gray-700 bg-transparent">
                 <Download className="w-4 h-4 mr-2" />
                 Export Data
@@ -112,7 +155,7 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-400 text-sm">Total Submissions</p>
-                  <p className="text-3xl font-bold text-white">{submissions.length}</p>
+                  <p className="text-3xl font-bold text-white">{stats.total}</p>
                 </div>
                 <Users className="w-8 h-8 text-cyan-500" />
               </div>
@@ -127,9 +170,9 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-400 text-sm">Investor Interest</p>
-                  <p className="text-3xl font-bold text-purple-400">{investorSubmissions.length}</p>
+                  <p className="text-3xl font-bold text-purple-400">{stats.investors}</p>
                 </div>
-                <Building className="w-8 h-8 text-purple-500" />
+                <DollarSign className="w-8 h-8 text-purple-500" />
               </div>
             </motion.div>
 
@@ -142,7 +185,7 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-400 text-sm">Early Access</p>
-                  <p className="text-3xl font-bold text-cyan-400">{earlyAccessSubmissions.length}</p>
+                  <p className="text-3xl font-bold text-cyan-400">{stats.earlyAccess}</p>
                 </div>
                 <Users className="w-8 h-8 text-cyan-500" />
               </div>
@@ -152,23 +195,47 @@ export default function AdminDashboard() {
           {/* Submissions List */}
           <div className="bg-gray-900 border border-gray-800 rounded-lg">
             <div className="p-6 border-b border-gray-800 flex items-center justify-between">
-              <h2 className="text-xl font-semibold">All Submissions</h2>
-              {submissions.length > 0 && (
-                <Button onClick={handleClearAll} variant="destructive" size="sm">
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Clear All
-                </Button>
-              )}
+              <h2 className="text-xl font-semibold">
+                {filter === "all"
+                  ? "All Submissions"
+                  : filter === "investor"
+                    ? "Investor Submissions"
+                    : "Early Access Submissions"}
+              </h2>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Filter className="w-4 h-4 text-gray-400" />
+                  <Select
+                    value={filter}
+                    onValueChange={(value: "all" | "investor" | "early-access") => setFilter(value)}
+                  >
+                    <SelectTrigger className="w-40 bg-gray-800 border-gray-700">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem value="all" className="text-white hover:bg-gray-700">
+                        All Submissions
+                      </SelectItem>
+                      <SelectItem value="investor" className="text-white hover:bg-gray-700">
+                        Investors Only
+                      </SelectItem>
+                      <SelectItem value="early-access" className="text-white hover:bg-gray-700">
+                        Early Access Only
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
 
-            {submissions.length === 0 ? (
+            {filteredSubmissions.length === 0 ? (
               <div className="p-8 text-center text-gray-400">
                 <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>No submissions yet</p>
+                <p>No {filter === "all" ? "" : filter} submissions yet</p>
               </div>
             ) : (
               <div className="divide-y divide-gray-800">
-                {submissions.map((submission, index) => (
+                {filteredSubmissions.map((submission, index) => (
                   <motion.div
                     key={submission.id}
                     initial={{ opacity: 0, y: 20 }}
@@ -189,6 +256,11 @@ export default function AdminDashboard() {
                           >
                             {submission.type === "investor" ? "Investor" : "Early Access"}
                           </span>
+                          {submission.investmentRange && (
+                            <span className="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-400">
+                              ${submission.investmentRange}
+                            </span>
+                          )}
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
@@ -214,15 +286,6 @@ export default function AdminDashboard() {
                           <span>{new Date(submission.timestamp).toLocaleString()}</span>
                         </div>
                       </div>
-
-                      <Button
-                        onClick={() => handleDelete(submission.id)}
-                        variant="ghost"
-                        size="sm"
-                        className="text-gray-400 hover:text-red-400"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
                     </div>
                   </motion.div>
                 ))}

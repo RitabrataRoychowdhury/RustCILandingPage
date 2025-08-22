@@ -4,10 +4,11 @@ import type React from "react"
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, User, Mail, Building, MessageSquare, CheckCircle } from "lucide-react"
+import { X, User, Mail, Building, MessageSquare, CheckCircle, DollarSign } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface WaitlistFormProps {
   isOpen: boolean
@@ -21,6 +22,7 @@ interface FormData {
   company: string
   role: string
   message: string
+  investmentRange?: string // Added investment range for investors
   type: "investor" | "early-access"
 }
 
@@ -31,6 +33,7 @@ export function WaitlistForm({ isOpen, onClose, type }: WaitlistFormProps) {
     company: "",
     role: "",
     message: "",
+    investmentRange: type === "investor" ? "" : undefined, // Initialize investment range for investors
     type,
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -41,15 +44,33 @@ export function WaitlistForm({ isOpen, onClose, type }: WaitlistFormProps) {
     setIsSubmitting(true)
 
     try {
-      // Save to localStorage as a simple storage solution
-      const submissions = JSON.parse(localStorage.getItem("waitlist-submissions") || "[]")
-      const newSubmission = {
-        ...formData,
-        timestamp: new Date().toISOString(),
-        id: Date.now().toString(),
+      console.log("[v0] Submitting form data:", formData)
+      console.log("[v0] MongoDB Test - Form type:", type)
+      console.log("[v0] MongoDB Test - Investment range:", formData.investmentRange)
+
+      const response = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...formData,
+          timestamp: new Date().toISOString(),
+          id: `${type}-${Date.now()}`,
+        }),
+      })
+
+      console.log("[v0] Response status:", response.status)
+
+      if (!response.ok) {
+        const errorData = await response.text()
+        console.error("[v0] Response error:", errorData)
+        throw new Error(`Failed to submit form: ${response.status} ${errorData}`)
       }
-      submissions.push(newSubmission)
-      localStorage.setItem("waitlist-submissions", JSON.stringify(submissions))
+
+      const result = await response.json()
+      console.log("[v0] Submission successful:", result)
+      console.log("[v0] MongoDB Test - Data should now be in investors collection")
 
       setIsSubmitted(true)
       setTimeout(() => {
@@ -61,11 +82,14 @@ export function WaitlistForm({ isOpen, onClose, type }: WaitlistFormProps) {
           company: "",
           role: "",
           message: "",
+          investmentRange: type === "investor" ? "" : undefined,
           type,
         })
       }, 2000)
     } catch (error) {
-      console.error("Error submitting form:", error)
+      console.error("[v0] Error submitting form:", error)
+      console.error("[v0] MongoDB Test - Submission failed, check database connection")
+      alert(`Error submitting form: ${error instanceof Error ? error.message : "Unknown error"}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -169,13 +193,41 @@ export function WaitlistForm({ isOpen, onClose, type }: WaitlistFormProps) {
                     required
                   />
 
+                  {type === "investor" && (
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-3 w-5 h-5 text-gray-400 z-10" />
+                      <Select onValueChange={(value) => handleInputChange("investmentRange", value)} required>
+                        <SelectTrigger className="pl-10 bg-gray-800 border-gray-700 text-white">
+                          <SelectValue placeholder="Investment Range" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-800 border-gray-700">
+                          <SelectItem value="50k-250k" className="text-white hover:bg-gray-700">
+                            $50K - $250K
+                          </SelectItem>
+                          <SelectItem value="250k-500k" className="text-white hover:bg-gray-700">
+                            $250K - $500K
+                          </SelectItem>
+                          <SelectItem value="500k-1m" className="text-white hover:bg-gray-700">
+                            $500K - $1M
+                          </SelectItem>
+                          <SelectItem value="1m-5m" className="text-white hover:bg-gray-700">
+                            $1M - $5M
+                          </SelectItem>
+                          <SelectItem value="5m+" className="text-white hover:bg-gray-700">
+                            $5M+
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
                   <div className="relative">
                     <MessageSquare className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
                     <Textarea
                       placeholder={
                         type === "investor"
-                          ? "Tell us about your investment interests..."
-                          : "What are you planning to build?"
+                          ? "Tell us about your investment interests and portfolio focus..."
+                          : "What are you planning to build with RustCI & Valkyrie?"
                       }
                       value={formData.message}
                       onChange={(e) => handleInputChange("message", e.target.value)}
@@ -189,7 +241,11 @@ export function WaitlistForm({ isOpen, onClose, type }: WaitlistFormProps) {
                     disabled={isSubmitting}
                     className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-semibold py-3 rounded-lg transition-all duration-300"
                   >
-                    {isSubmitting ? "Submitting..." : "Submit Application"}
+                    {isSubmitting
+                      ? "Submitting..."
+                      : type === "investor"
+                        ? "Submit Investment Interest"
+                        : "Request Early Access"}
                   </Button>
                 </motion.form>
               )}
